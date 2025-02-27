@@ -1,0 +1,190 @@
+<UserControl
+    x:Class="Rayffer.InvestmentSimulator.Views.MainView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Rayffer.InvestmentSimulator.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="vm:MainViewModel"
+    mc:Ignorable="d">
+    <Design.DataContext>
+        <!--
+            This only sets the DataContext for the previewer in an IDE,
+            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
+        -->
+        <vm:MainViewModel />
+    </Design.DataContext>
+    <Grid Margin="10">
+        <!--  Definición de dos columnas: la izquierda para configuración y la derecha para escenarios  -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Columna Izquierda: Configuración  -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Spacing="5">
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Configuración de Hipoteca" />
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Valor de la Vivienda:" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding ValorVivienda}" />
+                </Grid>
+
+                <!--  Principal Base en valor absoluto  -->
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Principal Base (en €):" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding PrincipalBase, StringFormat='{}0.00'}" />
+                </Grid>
+
+                <!--  Principal Base en porcentaje  -->
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Principal Base (%):" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding PrincipalBasePorcentaje, StringFormat='{}0.00'}" />
+                    <TextBlock
+                        Grid.Column="2"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Text="%" />
+                </Grid>
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Tasa de Interés Hipoteca (% anual):" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding TasaInteresHipoteca}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Plazo Hipoteca (años):" />
+                    <ComboBox
+                        Grid.Column="1"
+                        Width="100"
+                        Margin="5,0"
+                        ItemsSource="{Binding PlazoOptions}"
+                        SelectedItem="{Binding PlazoHipoteca}" />
+                </Grid>
+
+                <TextBlock
+                    Margin="0,10,0,0"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Configuración de Inversión" />
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Tasa de Interés Inversión (% anual):" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding TasaInteresInversion}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Modalidad de aportación:" />
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Vertical"
+                        Spacing="5">
+                        <RadioButton Content="Adelanto Hipoteca" IsChecked="{Binding OpcionAdelanto}" />
+                        <RadioButton Content="Invertir en Indexados" IsChecked="{Binding OpcionInvertir}" />
+                        <RadioButton Content="No hacer nada" IsChecked="{Binding OpcionNada}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid ColumnDefinitions="200,*,Auto">
+                    <TextBlock VerticalAlignment="Center" Text="Aporte Extra (en €):" />
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="5,0"
+                        Text="{Binding AporteExtraValor}" />
+                </Grid>
+
+                <Button
+                    Width="150"
+                    Margin="0,10,0,0"
+                    Command="{Binding GuardarEscenarioCommand}"
+                    Content="Guardar Escenario" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Columna Derecha: Escenarios Guardados y Resultados  -->
+        <Grid Grid.Column="1" RowDefinitions="*,*,*">
+            <Grid
+                Grid.Row="0"
+								RowDefinitions="Auto,*,Auto">
+                <TextBlock
+									  Grid.Row="0"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Escenarios Guardados" />
+							<ScrollViewer Grid.Row="1">
+                <ListBox ItemsSource="{Binding EscenariosGuardados}" SelectedItem="{Binding EscenarioSeleccionado}" />
+							</ScrollViewer>
+
+							<Button 
+									  Grid.Row="2"
+										Content="Eliminar simulación seleccionada"
+											Command="{Binding EliminarEscenarioCommand}"
+											Width="200" Margin="0,5,0,0"/>
+            </Grid>
+
+            <StackPanel
+                Grid.Row="1"
+                Orientation="Vertical"
+											Spacing="5">
+                <TextBlock
+                    Margin="0,10,0,0"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Resultados de la Simulación" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock
+                        Margin="5"
+                        Text="{Binding ResultadosSimulacion}"
+                        TextWrapping="Wrap" />
+                </ScrollViewer>
+
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="2"
+                Orientation="Vertical"
+											Spacing="5">
+                <!--  Tierlist de Inversiones  -->
+                <TextBlock
+                    Margin="0,10,0,0"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Tierlist de Inversiones" />
+                <ItemsControl ItemsSource="{Binding Tierlist}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
