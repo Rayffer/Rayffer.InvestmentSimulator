@@ -58,7 +58,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<int> PlazoOptions { get; } = new ObservableCollection<int> { 20, 30 };
 
     // Propiedad calculada para la tierlist: escenarios ordenados por ValorInversion descendente
-    public IEnumerable<Scenario> Tierlist => this.EscenariosGuardados.OrderByDescending(s => s.ValorInversion);
+    public IEnumerable<Scenario> Tierlist => this.EscenariosGuardados.OrderByDescending(s => s.ProporcionRendimiento);
 
     public MainViewModel()
     {

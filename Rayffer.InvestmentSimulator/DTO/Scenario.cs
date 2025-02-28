@@ -16,69 +16,77 @@ public class Scenario
 
     // Valor acumulado de la inversión (para la tierlist)
     public double ValorInversion { get; set; }
+    // Dinero total invertido
+    public double DineroInvertido { get; set; }
+    // Rendimiento financiero (interés neto)
+    public double RendimientoFinanciero { get; set; }
+    // Proporción del rendimiento respecto al dinero invertido (en %)
+    public double ProporcionRendimiento => this.DineroInvertido != 0 ? (this.RendimientoFinanciero / this.DineroInvertido * 100) : 0;
 
-    // Para la salida extendida
     public string Resultado { get; set; }
 
     public void CalcularSimulacion()
     {
-        double tasaHipotecaMensual = TasaInteresHipoteca / 100 / 12;
-        double tasaInversionMensual = TasaInteresInversion / 100 / 12;
-        int plazoMeses = PlazoHipoteca * 12;
-        double cuota = CalcularCuotaMensual(PrincipalBase, tasaHipotecaMensual, plazoMeses);
+        var tasaHipotecaMensual = this.TasaInteresHipoteca / 100 / 12;
+        var tasaInversionMensual = this.TasaInteresInversion / 100 / 12;
+        var plazoMeses = this.PlazoHipoteca * 12;
+        var cuota = this.CalcularCuotaMensual(this.PrincipalBase, tasaHipotecaMensual, plazoMeses);
 
-        string opcion = OpcionAdelanto ? "Adelanto Hipoteca" :
-                        OpcionInvertir ? "Invertir en Indexados" : "No hacer nada";
+        var opcion = this.OpcionAdelanto ? "Adelanto Hipoteca" :
+                        this.OpcionInvertir ? "Invertir en Indexados" : "No hacer nada";
 
-        if (OpcionAdelanto)
+        if (this.OpcionAdelanto)
         {
-            var sim = SimularHipotecaConExtra(PrincipalBase, tasaHipotecaMensual, plazoMeses, AporteExtraValor, cuota);
-            int mesesPagados = sim.meses;
-            double intereses = sim.intereses;
-            int mesesInversion = (30 * 12) - mesesPagados;
-            double fv = ValorFuturoMensual(cuota, tasaInversionMensual, mesesInversion);
-            // El dinero efectivamente invertido es la suma de las aportaciones mensuales durante los meses de inversión.
-            double dineroInvertido = cuota * mesesInversion;
-            double rendimientoFinanciero = fv - dineroInvertido;
+            var sim = this.SimularHipotecaConExtra(this.PrincipalBase, tasaHipotecaMensual, plazoMeses, this.AporteExtraValor, cuota);
+            var mesesPagados = sim.meses;
+            var intereses = sim.intereses;
+            var mesesInversion = (30 * 12) - mesesPagados;
+            var fv = this.ValorFuturoMensual(cuota, tasaInversionMensual, mesesInversion);
 
-            ValorInversion = fv;
+            // Suponemos que el dinero invertido es la suma de la cuota invertida durante los meses de inversión
+            this.DineroInvertido = cuota * mesesInversion;
+            this.RendimientoFinanciero = fv - this.DineroInvertido;
+            this.ValorInversion = fv;
 
-            Resultado = $"Opción: {opcion}\n" +
+            this.Resultado = $"Opción: {opcion}\n" +
                         $"Plazo efectivo: {mesesPagados / 12.0:F1} años\n" +
                         $"Intereses pagados: {intereses:F2} €\n" +
                         $"Valor acumulado invirtiendo la cuota liberada: {fv:F2} €\n" +
-                        $"Dinero total invertido: {dineroInvertido:F2} €\n" +
-                        $"Rendimiento financiero (interés neto): {rendimientoFinanciero:F2} €";
+                        $"Dinero total invertido: {this.DineroInvertido:F2} €\n" +
+                        $"Rendimiento financiero: {this.RendimientoFinanciero:F2} €\n" +
+                        $"Proporción: {this.ProporcionRendimiento:F2}%";
         }
-        else if (OpcionInvertir)
+        else if (this.OpcionInvertir)
         {
-            double totalPagado = cuota * plazoMeses;
-            double intereses = totalPagado - PrincipalBase;
-            double fvAnual = ValorFuturoAnual(AporteExtraValor, TasaInteresInversion / 100, PlazoHipoteca);
-            int mesesRestantes = (30 - PlazoHipoteca) * 12;
-            double fvMensual = ValorFuturoMensual(cuota, tasaInversionMensual, mesesRestantes);
-            double fvAnualFinal = fvAnual * Math.Pow(1 + TasaInteresInversion / 100, 30 - PlazoHipoteca);
-            double totalFV = fvAnualFinal + fvMensual;
-            // En este caso, se invierte el aporte extra durante el plazo de la hipoteca y además se invierte la cuota liberada.
-            double dineroInvertido = (AporteExtraValor * PlazoHipoteca) + (cuota * mesesRestantes);
-            double rendimientoFinanciero = totalFV - dineroInvertido;
+            var totalPagado = cuota * plazoMeses;
+            var intereses = totalPagado - this.PrincipalBase;
+            var fvAnual = this.ValorFuturoAnual(this.AporteExtraValor, this.TasaInteresInversion / 100, this.PlazoHipoteca);
+            var mesesRestantes = (30 - this.PlazoHipoteca) * 12;
+            var fvMensual = this.ValorFuturoMensual(cuota, tasaInversionMensual, mesesRestantes);
+            var totalFV = fvAnual * Math.Pow(1 + this.TasaInteresInversion / 100, 30 - this.PlazoHipoteca) + fvMensual;
 
-            ValorInversion = totalFV;
+            // El dinero invertido es la suma de los aportes extra durante el plazo de la hipoteca y la cuota invertida durante el resto
+            this.DineroInvertido = (this.AporteExtraValor * this.PlazoHipoteca) + (cuota * mesesRestantes);
+            this.RendimientoFinanciero = totalFV - this.DineroInvertido;
+            this.ValorInversion = totalFV;
 
-            Resultado = $"Opción: {opcion}\n" +
-                        $"Plazo hipoteca: {PlazoHipoteca} años\n" +
+            this.Resultado = $"Opción: {opcion}\n" +
+                        $"Plazo hipoteca: {this.PlazoHipoteca} años\n" +
                         $"Intereses pagados: {intereses:F2} €\n" +
                         $"Valor acumulado invirtiendo aportes extra y cuota liberada: {totalFV:F2} €\n" +
-                        $"Dinero total invertido: {dineroInvertido:F2} €\n" +
-                        $"Rendimiento financiero (interés neto): {rendimientoFinanciero:F2} €";
+                        $"Dinero total invertido: {this.DineroInvertido:F2} €\n" +
+                        $"Rendimiento financiero: {this.RendimientoFinanciero:F2} €\n" +
+                        $"Proporción: {this.ProporcionRendimiento:F2}%";
         }
         else // OpcionNada
         {
-            double totalPagado = cuota * plazoMeses;
-            double intereses = totalPagado - PrincipalBase;
-            ValorInversion = 0;
-            Resultado = $"Opción: {opcion}\n" +
-                        $"Plazo hipoteca: {PlazoHipoteca} años\n" +
+            var totalPagado = cuota * plazoMeses;
+            var intereses = totalPagado - this.PrincipalBase;
+            this.DineroInvertido = 0;
+            this.RendimientoFinanciero = 0;
+            this.ValorInversion = 0;
+            this.Resultado = $"Opción: {opcion}\n" +
+                        $"Plazo hipoteca: {this.PlazoHipoteca} años\n" +
                         $"Intereses pagados: {intereses:F2} €\n" +
                         $"Sin inversión realizada, por lo que no hay rendimiento financiero.";
         }
@@ -91,21 +99,21 @@ public class Scenario
 
     private (int meses, double intereses) SimularHipotecaConExtra(double principal, double tasaMensual, int plazoMeses, double pagoExtraAnual, double cuotaMensual)
     {
-        double saldo = principal;
+        var saldo = principal;
         double totalIntereses = 0;
-        int mes = 0;
+        var mes = 0;
         while (saldo > 0 && mes < plazoMeses * 2)
         {
             mes++;
-            double interes = saldo * tasaMensual;
+            var interes = saldo * tasaMensual;
             totalIntereses += interes;
-            double abonoPrincipal = cuotaMensual - interes;
+            var abonoPrincipal = cuotaMensual - interes;
             if (abonoPrincipal > saldo)
                 abonoPrincipal = saldo;
             saldo -= abonoPrincipal;
             if (mes % 12 == 0 && saldo > 0)
             {
-                double abonoExtra = Math.Min(pagoExtraAnual, saldo);
+                var abonoExtra = Math.Min(pagoExtraAnual, saldo);
                 saldo -= abonoExtra;
             }
         }
@@ -124,7 +132,7 @@ public class Scenario
 
     public override string ToString()
     {
-        string opcion = OpcionAdelanto ? "Adelanto" : OpcionInvertir ? "Invertir" : "Nada";
-        return $"Hipoteca: {PlazoHipoteca} años, Principal: {PrincipalBase}€, Opción: {opcion} (Inversión: {ValorInversion:F2} €)";
+        var opcion = this.OpcionAdelanto ? "Adelanto" : this.OpcionInvertir ? "Invertir" : "Nada";
+        return $"Hipoteca: {this.PlazoHipoteca} años, Principal: {this.PrincipalBase}€, Opción: {opcion} (Inversión: {this.ValorInversion:F2} €)";
     }
 }
